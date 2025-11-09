@@ -144,6 +144,7 @@ export function FormEditor({ fields, onChange }: FormEditorProps) {
       {selectedField && (
         <FieldPropertiesPanel
           field={selectedField}
+          allFields={fields}
           onSave={handleSaveField}
           onClose={() => setSelectedField(null)}
         />

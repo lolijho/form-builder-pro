@@ -1,7 +1,8 @@
 import { FormField, FormStyles } from "@shared/formTypes";
 import { FieldRenderer } from "./FieldRenderer";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { shouldShowField } from "@shared/conditionalLogic";
 
 interface FormPreviewProps {
   title: string;
@@ -19,6 +20,15 @@ export function FormPreview({
   onSubmit,
 }: FormPreviewProps) {
   const [formData, setFormData] = useState<Record<string, any>>({});
+  const [visibleFields, setVisibleFields] = useState<FormField[]>(fields);
+
+  // Update visible fields whenever form data changes
+  useEffect(() => {
+    const newVisibleFields = fields.filter((field) =>
+      shouldShowField(field, formData)
+    );
+    setVisibleFields(newVisibleFields);
+  }, [formData, fields]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,7 +38,24 @@ export function FormPreview({
   };
 
   const handleFieldChange = (fieldId: string, value: any) => {
-    setFormData((prev) => ({ ...prev, [fieldId]: value }));
+    setFormData((prev) => {
+      const newData = { ...prev, [fieldId]: value };
+      // Clear values of fields that become hidden
+      const stillVisible = new Set(
+        fields
+          .filter((f) => shouldShowField(f, newData))
+          .map((f) => f.id)
+      );
+      
+      // Remove data for hidden fields
+      Object.keys(newData).forEach((key) => {
+        if (!stillVisible.has(key)) {
+          delete newData[key];
+        }
+      });
+      
+      return newData;
+    });
   };
 
   const getButtonVariant = () => {
@@ -76,7 +103,7 @@ export function FormPreview({
               gap: `${styles.spacing}px`,
             }}
           >
-            {fields.map((field) => (
+            {visibleFields.map((field) => (
               <div key={field.id}>
                 <FieldRenderer
                   field={field}
@@ -87,7 +114,7 @@ export function FormPreview({
             ))}
           </div>
 
-          {fields.length > 0 && (
+          {visibleFields.length > 0 && (
             <Button
               type="submit"
               variant={getButtonVariant()}

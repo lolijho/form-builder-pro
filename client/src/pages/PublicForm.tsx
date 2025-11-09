@@ -5,6 +5,7 @@ import { FormPreview } from "@/components/FormPreview";
 import { FormField, FormStyles } from "@shared/formTypes";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { getVisibleFields } from "@shared/conditionalLogic";
 
 export default function PublicForm() {
   const [, params] = useRoute("/form/:id");
@@ -27,9 +28,21 @@ export default function PublicForm() {
   const handleSubmit = (data: Record<string, any>) => {
     if (!formId) return;
 
+    // Only submit data for visible fields
+    const fields: FormField[] = form ? JSON.parse(form.fields) : [];
+    const visibleFields = getVisibleFields(fields, data);
+    const visibleFieldIds = new Set(visibleFields.map(f => f.id));
+    
+    const filteredData: Record<string, any> = {};
+    Object.keys(data).forEach(key => {
+      if (visibleFieldIds.has(key)) {
+        filteredData[key] = data[key];
+      }
+    });
+
     submitMutation.mutate({
       formId,
-      data: JSON.stringify(data),
+      data: JSON.stringify(filteredData),
       userAgent: navigator.userAgent,
     });
   };

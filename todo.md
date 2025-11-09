@@ -45,3 +45,11 @@ Tutte le funzionalità core sono state implementate e testate con successo.
 - [ ] Implementare notifiche email su submission
 - [ ] Implementare webhook per integrazioni esterne
 - [ ] Implementare anti-spam (honeypot/captcha)
+
+
+## Logica Condizionale (Nuova Richiesta)
+- [x] Estendere FormField type con supporto per condizioni
+- [x] Creare componente UI per configurare regole condizionali
+- [x] Implementare valutazione condizioni in FormPreview
+- [x] Implementare valutazione condizioni in PublicForm
+- [x] Testare logica condizionale con vari scenari

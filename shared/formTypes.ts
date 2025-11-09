@@ -13,6 +13,17 @@ export type FieldType =
   | "date"
   | "file";
 
+export type ConditionOperator = "equals" | "not_equals" | "contains" | "not_contains" | "is_empty" | "is_not_empty";
+
+export interface ConditionalRule {
+  /** ID of the field to check */
+  fieldId: string;
+  /** Operator to use for comparison */
+  operator: ConditionOperator;
+  /** Value to compare against (not needed for is_empty/is_not_empty) */
+  value?: any;
+}
+
 export interface FormField {
   id: string;
   type: FieldType;
@@ -26,6 +37,8 @@ export interface FormField {
     pattern?: string;
     message?: string;
   };
+  /** Conditional rules - field is shown only if ALL rules match */
+  conditionalRules?: ConditionalRule[];
 }
 
 export interface FormStyles {

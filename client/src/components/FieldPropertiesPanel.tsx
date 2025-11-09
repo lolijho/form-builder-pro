@@ -6,15 +6,19 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
+import { ConditionalRulesEditor } from "./ConditionalRulesEditor";
+import { Separator } from "@/components/ui/separator";
 
 interface FieldPropertiesPanelProps {
   field: FormField | null;
+  allFields: FormField[];
   onSave: (field: FormField) => void;
   onClose: () => void;
 }
 
 export function FieldPropertiesPanel({
   field,
+  allFields,
   onSave,
   onClose,
 }: FieldPropertiesPanelProps) {
@@ -139,7 +143,17 @@ export function FieldPropertiesPanel({
           </>
         )}
 
-        <Button onClick={handleSave} className="w-full">
+        <Separator className="my-6" />
+
+        <ConditionalRulesEditor
+          field={editedField}
+          allFields={allFields}
+          onChange={(rules) =>
+            setEditedField({ ...editedField, conditionalRules: rules })
+          }
+        />
+
+        <Button onClick={handleSave} className="w-full mt-6">
           Salva modifiche
         </Button>
       </div>
