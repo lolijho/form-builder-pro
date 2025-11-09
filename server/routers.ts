@@ -1,7 +1,10 @@
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, router } from "./_core/trpc";
+import { publicProcedure, router, protectedProcedure } from "./_core/trpc";
+import { z } from "zod";
+import * as db from "./db";
+import { TRPCError } from "@trpc/server";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -17,12 +20,176 @@ export const appRouter = router({
     }),
   }),
 
-  // TODO: add feature routers here, e.g.
-  // todo: router({
-  //   list: protectedProcedure.query(({ ctx }) =>
-  //     db.getUserTodos(ctx.user.id)
-  //   ),
-  // }),
+  forms: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      return await db.getFormsByUserId(ctx.user.id);
+    }),
+
+    getById: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input, ctx }) => {
+        const form = await db.getFormById(input.id);
+        if (!form) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Form not found" });
+        }
+        if (form.userId !== ctx.user.id) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
+        }
+        return form;
+      }),
+
+    create: protectedProcedure
+      .input(
+        z.object({
+          title: z.string().min(1).max(255),
+          description: z.string().optional(),
+          fields: z.string(),
+          styles: z.string(),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        await db.createForm({
+          userId: ctx.user.id,
+          title: input.title,
+          description: input.description || null,
+          fields: input.fields,
+          styles: input.styles,
+          published: 0,
+        });
+        return { success: true };
+      }),
+
+    update: protectedProcedure
+      .input(
+        z.object({
+          id: z.number(),
+          title: z.string().min(1).max(255).optional(),
+          description: z.string().optional(),
+          fields: z.string().optional(),
+          styles: z.string().optional(),
+          published: z.number().optional(),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        const form = await db.getFormById(input.id);
+        if (!form) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Form not found" });
+        }
+        if (form.userId !== ctx.user.id) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
+        }
+        const { id, ...updateData } = input;
+        await db.updateForm(id, updateData);
+        return { success: true };
+      }),
+
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        const form = await db.getFormById(input.id);
+        if (!form) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Form not found" });
+        }
+        if (form.userId !== ctx.user.id) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
+        }
+        await db.deleteForm(input.id);
+        return { success: true };
+      }),
+
+    publish: protectedProcedure
+      .input(z.object({ id: z.number(), published: z.boolean() }))
+      .mutation(async ({ input, ctx }) => {
+        const form = await db.getFormById(input.id);
+        if (!form) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Form not found" });
+        }
+        if (form.userId !== ctx.user.id) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
+        }
+        await db.updateForm(input.id, { published: input.published ? 1 : 0 });
+        return { success: true };
+      }),
+  }),
+
+  submissions: router({
+    list: protectedProcedure
+      .input(z.object({ formId: z.number() }))
+      .query(async ({ input, ctx }) => {
+        const form = await db.getFormById(input.formId);
+        if (!form) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Form not found" });
+        }
+        if (form.userId !== ctx.user.id) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
+        }
+        return await db.getSubmissionsByFormId(input.formId);
+      }),
+
+    getById: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input, ctx }) => {
+        const submission = await db.getSubmissionById(input.id);
+        if (!submission) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Submission not found" });
+        }
+        const form = await db.getFormById(submission.formId);
+        if (!form || form.userId !== ctx.user.id) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
+        }
+        return submission;
+      }),
+
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        const submission = await db.getSubmissionById(input.id);
+        if (!submission) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Submission not found" });
+        }
+        const form = await db.getFormById(submission.formId);
+        if (!form || form.userId !== ctx.user.id) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
+        }
+        await db.deleteSubmission(input.id);
+        return { success: true };
+      }),
+  }),
+
+  public: router({
+    getForm: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        const form = await db.getFormById(input.id);
+        if (!form || form.published !== 1) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Form not found or not published" });
+        }
+        return form;
+      }),
+
+    submit: publicProcedure
+      .input(
+        z.object({
+          formId: z.number(),
+          data: z.string(),
+          ipAddress: z.string().optional(),
+          userAgent: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const form = await db.getFormById(input.formId);
+        if (!form || form.published !== 1) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Form not found or not published" });
+        }
+        await db.createSubmission({
+          formId: input.formId,
+          data: input.data,
+          ipAddress: input.ipAddress || null,
+          userAgent: input.userAgent || null,
+        });
+        return { success: true };
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

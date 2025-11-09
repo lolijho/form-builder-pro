@@ -25,4 +25,39 @@ export const users = mysqlTable("users", {
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
-// TODO: Add your tables here
+/**
+ * Forms table - stores form definitions created by users
+ */
+export const forms = mysqlTable("forms", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  /** JSON structure containing field definitions */
+  fields: text("fields").notNull(),
+  /** JSON structure containing style customizations */
+  styles: text("styles").notNull(),
+  /** Whether the form is published and accessible via embed */
+  published: int("published").default(0).notNull(), // 0 = draft, 1 = published
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Form = typeof forms.$inferSelect;
+export type InsertForm = typeof forms.$inferInsert;
+
+/**
+ * Submissions table - stores form submission data
+ */
+export const submissions = mysqlTable("submissions", {
+  id: int("id").autoincrement().primaryKey(),
+  formId: int("formId").notNull(),
+  /** JSON structure containing submitted field values */
+  data: text("data").notNull(),
+  ipAddress: varchar("ipAddress", { length: 45 }),
+  userAgent: text("userAgent"),
+  submittedAt: timestamp("submittedAt").defaultNow().notNull(),
+});
+
+export type Submission = typeof submissions.$inferSelect;
+export type InsertSubmission = typeof submissions.$inferInsert;

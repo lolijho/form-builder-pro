@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, users, forms, InsertForm, submissions, InsertSubmission } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,4 +89,63 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+// Forms queries
+export async function createForm(form: InsertForm) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(forms).values(form);
+  return result;
+}
+
+export async function getFormById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(forms).where(eq(forms.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getFormsByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(forms).where(eq(forms.userId, userId));
+}
+
+export async function updateForm(id: number, data: Partial<InsertForm>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.update(forms).set(data).where(eq(forms.id, id));
+}
+
+export async function deleteForm(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(submissions).where(eq(submissions.formId, id));
+  return await db.delete(forms).where(eq(forms.id, id));
+}
+
+// Submissions queries
+export async function createSubmission(submission: InsertSubmission) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(submissions).values(submission);
+  return result;
+}
+
+export async function getSubmissionsByFormId(formId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(submissions).where(eq(submissions.formId, formId));
+}
+
+export async function getSubmissionById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(submissions).where(eq(submissions.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function deleteSubmission(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.delete(submissions).where(eq(submissions.id, id));
+}
