@@ -28,6 +28,7 @@ export default function Editor() {
   const [styles, setStyles] = useState<FormStyles>(defaultFormStyles);
   const [published, setPublished] = useState(false);
   const [emailNotifications, setEmailNotifications] = useState(true);
+  const [webhookUrl, setWebhookUrl] = useState("");
   const [activeTab, setActiveTab] = useState<string>("editor");
 
   const { data: form, isLoading } = trpc.forms.getById.useQuery(
@@ -75,6 +76,7 @@ export default function Editor() {
       setStyles(JSON.parse(form.styles));
       setPublished(form.published === 1);
       setEmailNotifications(form.emailNotifications === 1);
+      setWebhookUrl(form.webhookUrl || "");
     }
   }, [form]);
 
@@ -92,7 +94,12 @@ export default function Editor() {
     };
 
     if (formId) {
-      updateMutation.mutate({ id: formId, ...formData, emailNotifications: emailNotifications ? 1 : 0 });
+      updateMutation.mutate({ 
+        id: formId, 
+        ...formData, 
+        emailNotifications: emailNotifications ? 1 : 0,
+        webhookUrl: webhookUrl || undefined,
+      });
     } else {
       createMutation.mutate(formData);
     }
@@ -162,6 +169,15 @@ export default function Editor() {
                       id="email-toggle"
                       checked={emailNotifications}
                       onCheckedChange={handleEmailNotificationsToggle}
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="url"
+                      placeholder="Webhook URL (opzionale)"
+                      value={webhookUrl}
+                      onChange={(e) => setWebhookUrl(e.target.value)}
+                      className="w-64"
                     />
                   </div>
                 </>

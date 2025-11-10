@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { ConditionalRulesEditor } from "./ConditionalRulesEditor";
+import { ValidationEditor } from "./ValidationEditor";
 import { Separator } from "@/components/ui/separator";
 
 interface FieldPropertiesPanelProps {
@@ -103,44 +104,23 @@ export function FieldPropertiesPanel({
           </div>
         )}
 
-        {(editedField.type === "text" || editedField.type === "number") && (
-          <>
-            <div>
-              <Label htmlFor="min">Valore minimo</Label>
-              <Input
-                id="min"
-                type="number"
-                value={editedField.validation?.min || ""}
-                onChange={(e) =>
-                  setEditedField({
-                    ...editedField,
-                    validation: {
-                      ...editedField.validation,
-                      min: e.target.value ? Number(e.target.value) : undefined,
-                    },
-                  })
-                }
-              />
-            </div>
+        <Separator className="my-6" />
 
-            <div>
-              <Label htmlFor="max">Valore massimo</Label>
-              <Input
-                id="max"
-                type="number"
-                value={editedField.validation?.max || ""}
-                onChange={(e) =>
-                  setEditedField({
-                    ...editedField,
-                    validation: {
-                      ...editedField.validation,
-                      max: e.target.value ? Number(e.target.value) : undefined,
-                    },
-                  })
-                }
-              />
-            </div>
-          </>
+        {/* Validation Section */}
+        {(editedField.type === "text" ||
+          editedField.type === "email" ||
+          editedField.type === "number" ||
+          editedField.type === "textarea") && (
+          <ValidationEditor
+            validation={editedField.validation}
+            fieldType={editedField.type}
+            onChange={(validation) => {
+              setEditedField({
+                ...editedField,
+                validation,
+              });
+            }}
+          />
         )}
 
         <Separator className="my-6" />

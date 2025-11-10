@@ -41,6 +41,8 @@ export const forms = mysqlTable("forms", {
   published: int("published").default(0).notNull(), // 0 = draft, 1 = published
   /** Whether to send email notifications on new submissions */
   emailNotifications: int("emailNotifications").default(1).notNull(), // 0 = disabled, 1 = enabled
+  /** Webhook URL to send submission data to external services */
+  webhookUrl: varchar("webhookUrl", { length: 500 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -63,3 +65,23 @@ export const submissions = mysqlTable("submissions", {
 
 export type Submission = typeof submissions.$inferSelect;
 export type InsertSubmission = typeof submissions.$inferInsert;
+
+// Analytics table for tracking form views and interactions
+export const formAnalytics = mysqlTable("formAnalytics", {
+  id: int("id").autoincrement().primaryKey(),
+  formId: int("formId").notNull(),
+  /** Event type: 'view', 'start', 'submit', 'abandon' */
+  event: varchar("event", { length: 50 }).notNull(),
+  /** Unique session identifier for tracking user journey */
+  sessionId: varchar("sessionId", { length: 100 }),
+  /** IP address of the visitor */
+  ipAddress: varchar("ipAddress", { length: 45 }),
+  /** User agent string */
+  userAgent: text("userAgent"),
+  /** Referrer URL */
+  referrer: text("referrer"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type FormAnalytics = typeof formAnalytics.$inferSelect;
+export type InsertFormAnalytics = typeof formAnalytics.$inferInsert;

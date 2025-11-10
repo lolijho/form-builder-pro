@@ -16,6 +16,15 @@ export default function PublicForm() {
     { enabled: !!formId }
   );
 
+  const trackViewMutation = trpc.public.trackView.useMutation();
+
+  // Track view on mount
+  useEffect(() => {
+    if (formId && !isLoading && form) {
+      trackViewMutation.mutate({ formId });
+    }
+  }, [formId, isLoading, form]);
+
   const submitMutation = trpc.public.submit.useMutation({
     onSuccess: () => {
       toast.success("Form inviato con successo!");

@@ -24,6 +24,21 @@ export interface ConditionalRule {
   value?: any;
 }
 
+export interface FieldValidation {
+  /** Regex pattern for validation */
+  pattern?: string;
+  /** Custom error message */
+  message?: string;
+  /** Minimum length for text fields */
+  minLength?: number;
+  /** Maximum length for text fields */
+  maxLength?: number;
+  /** Minimum value for number fields */
+  min?: number;
+  /** Maximum value for number fields */
+  max?: number;
+}
+
 export interface FormField {
   id: string;
   type: FieldType;
@@ -31,12 +46,7 @@ export interface FormField {
   placeholder?: string;
   required?: boolean;
   options?: string[]; // For select, radio, checkbox
-  validation?: {
-    min?: number;
-    max?: number;
-    pattern?: string;
-    message?: string;
-  };
+  validation?: FieldValidation;
   /** Conditional rules - field is shown only if ALL rules match */
   conditionalRules?: ConditionalRule[];
 }

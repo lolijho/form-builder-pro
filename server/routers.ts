@@ -66,12 +66,13 @@ export const appRouter = router({
       .input(
         z.object({
           id: z.number(),
-          title: z.string().min(1).max(255).optional(),
+          title: z.string().optional(),
           description: z.string().optional(),
           fields: z.string().optional(),
           styles: z.string().optional(),
           published: z.number().optional(),
           emailNotifications: z.number().optional(),
+          webhookUrl: z.string().optional(),
         })
       )
       .mutation(async ({ input, ctx }) => {
@@ -142,6 +143,69 @@ export const appRouter = router({
       }),
   }),
 
+  analytics: router({
+    getStats: protectedProcedure
+      .input(z.object({ formId: z.number() }))
+      .query(async ({ input, ctx }) => {
+        const form = await db.getFormById(input.formId);
+        if (!form || form.userId !== ctx.user.id) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
+        }
+        return await db.getFormStats(input.formId);
+      }),
+
+    getTimeline: protectedProcedure
+      .input(z.object({ formId: z.number(), days: z.number().default(30) }))
+      .query(async ({ input, ctx }) => {
+        const form = await db.getFormById(input.formId);
+        if (!form || form.userId !== ctx.user.id) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
+        }
+        
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() - input.days);
+        
+        const analytics = await db.getFormAnalytics(input.formId, startDate, new Date());
+        const submissions = await db.getSubmissionsByFormId(input.formId);
+        
+        // Group by date
+        const dateMap = new Map<string, { views: number; submissions: number }>();
+        
+        // Initialize all dates with 0
+        for (let i = 0; i < input.days; i++) {
+          const date = new Date();
+          date.setDate(date.getDate() - i);
+          const dateStr = date.toISOString().split('T')[0];
+          dateMap.set(dateStr, { views: 0, submissions: 0 });
+        }
+        
+        // Count views
+        analytics.forEach((event) => {
+          if (event.event === 'view') {
+            const dateStr = new Date(event.createdAt).toISOString().split('T')[0];
+            const data = dateMap.get(dateStr);
+            if (data) {
+              data.views++;
+            }
+          }
+        });
+        
+        // Count submissions
+        submissions.forEach((sub) => {
+          const dateStr = new Date(sub.submittedAt).toISOString().split('T')[0];
+          const data = dateMap.get(dateStr);
+          if (data) {
+            data.submissions++;
+          }
+        });
+        
+        // Convert to array and sort
+        return Array.from(dateMap.entries())
+          .map(([date, data]) => ({ date, ...data }))
+          .sort((a, b) => a.date.localeCompare(b.date));
+      }),
+  }),
+
   submissions: router({
     list: protectedProcedure
       .input(z.object({ formId: z.number() }))
@@ -187,6 +251,20 @@ export const appRouter = router({
   }),
 
   public: router({
+    trackView: publicProcedure
+      .input(z.object({ formId: z.number() }))
+      .mutation(async ({ input }) => {
+        await db.trackFormEvent({
+          formId: input.formId,
+          event: "view",
+          sessionId: undefined,
+          ipAddress: undefined,
+          userAgent: undefined,
+          referrer: undefined,
+        });
+        return { success: true };
+      }),
+
     getForm: publicProcedure
       .input(z.object({ id: z.number() }))
       .query(async ({ input }) => {
@@ -220,8 +298,30 @@ export const appRouter = router({
           userAgent: input.userAgent || null,
         });
 
-        // Send email notification if enabled
-        if (form.emailNotifications === 1) {
+      // Send webhook if configured
+      if (form.webhookUrl) {
+        try {
+          await fetch(form.webhookUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              formId: input.formId,
+              formTitle: form.title,
+              data: JSON.parse(input.data),
+              submittedAt: new Date().toISOString(),
+              userAgent: input.userAgent,
+            }),
+          });
+        } catch (error) {
+          console.error("[Webhook] Failed to send:", error);
+          // Don't block submission if webhook fails
+        }
+      }
+
+      // Send email notification if enabled
+      if (form.emailNotifications === 1) {
           try {
             const submissionData = JSON.parse(input.data);
             const fields = JSON.parse(form.fields);

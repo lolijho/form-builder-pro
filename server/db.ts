@@ -1,6 +1,6 @@
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and, gte, lte, count } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, forms, InsertForm, submissions, InsertSubmission } from "../drizzle/schema";
+import { InsertUser, users, forms, InsertForm, submissions, InsertSubmission, formAnalytics, InsertFormAnalytics } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -149,5 +149,62 @@ export async function getSubmissionById(id: number) {
 export async function deleteSubmission(id: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  return await db.delete(submissions).where(eq(submissions.id, id));
+  await db.delete(submissions).where(eq(submissions.id, id));
+}
+
+// Analytics queries
+export async function trackFormEvent(event: InsertFormAnalytics) {
+  const db = await getDb();
+  if (!db) return;
+  try {
+    await db.insert(formAnalytics).values(event);
+  } catch (error) {
+    console.error("[Analytics] Failed to track event:", error);
+  }
+}
+
+export async function getFormAnalytics(formId: number, startDate?: Date, endDate?: Date) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  let conditions = [eq(formAnalytics.formId, formId)];
+  
+  if (startDate) {
+    conditions.push(gte(formAnalytics.createdAt, startDate));
+  }
+  if (endDate) {
+    conditions.push(lte(formAnalytics.createdAt, endDate));
+  }
+  
+  return await db
+    .select()
+    .from(formAnalytics)
+    .where(and(...conditions))
+    .orderBy(desc(formAnalytics.createdAt));
+}
+
+export async function getFormStats(formId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const views = await db
+    .select({ count: count() })
+    .from(formAnalytics)
+    .where(and(eq(formAnalytics.formId, formId), eq(formAnalytics.event, "view")));
+  
+  const starts = await db
+    .select({ count: count() })
+    .from(formAnalytics)
+    .where(and(eq(formAnalytics.formId, formId), eq(formAnalytics.event, "start")));
+  
+  const submits = await db
+    .select({ count: count() })
+    .from(submissions)
+    .where(eq(submissions.formId, formId));
+  
+  return {
+    views: Number(views[0]?.count || 0),
+    starts: Number(starts[0]?.count || 0),
+    submissions: Number(submits[0]?.count || 0),
+  };
 }

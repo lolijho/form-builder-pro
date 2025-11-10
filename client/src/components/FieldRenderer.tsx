@@ -31,6 +31,20 @@ export function FieldRenderer({
     }
   };
 
+  const getValidationProps = () => {
+    const props: any = {};
+    if (field.validation) {
+      if (field.validation.minLength) props.minLength = field.validation.minLength;
+      if (field.validation.maxLength) props.maxLength = field.validation.maxLength;
+      if (field.validation.min !== undefined) props.min = field.validation.min;
+      if (field.validation.max !== undefined) props.max = field.validation.max;
+      if (field.validation.pattern) props.pattern = field.validation.pattern;
+    }
+    return props;
+  };
+
+  const validationProps = getValidationProps();
+
   const renderField = () => {
     switch (field.type) {
       case "text":
@@ -44,6 +58,8 @@ export function FieldRenderer({
             onChange={(e) => handleChange(e.target.value)}
             required={field.required}
             disabled={disabled}
+            {...validationProps}
+            title={field.validation?.message}
           />
         );
 
@@ -56,6 +72,8 @@ export function FieldRenderer({
             required={field.required}
             disabled={disabled}
             rows={4}
+            {...validationProps}
+            title={field.validation?.message}
           />
         );
 

@@ -8,6 +8,7 @@ import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import Editor from "./pages/Editor";
 import Submissions from "./pages/Submissions";
+import Analytics from "./pages/Analytics";
 import PublicForm from "./pages/PublicForm";
 
 function Router() {
@@ -16,7 +17,8 @@ function Router() {
       <Route path={"/"} component={Home} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/editor/:id" component={Editor} />
-      <Route path="/submissions/:formId" component={Submissions} />
+      <Route path="/submissions/:id" component={Submissions} />
+      <Route path="/analytics/:id" component={Analytics} />
       <Route path="/form/:id" component={PublicForm} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}

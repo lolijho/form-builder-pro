@@ -76,3 +76,27 @@ Tutte le funzionalità core sono state implementate e testate con successo.
 - [x] Aggiungere pulsante "Duplica" nella dashboard
 - [x] Implementare logica di copia con nuovo titolo
 - [x] Testare duplicazione completa
+
+
+## Validazione Avanzata con Regex (Nuova Richiesta)
+- [x] Estendere FormField type con validazione regex
+- [x] Creare pattern predefiniti (codice fiscale, partita IVA, telefono, CAP)
+- [x] Implementare UI per configurare validazione nell'editor
+- [x] Implementare validazione client-side in FormPreview e PublicForm
+- [x] Testare validazione con vari pattern
+
+## Dashboard Analytics (Nuova Richiesta)
+- [x] Estendere schema database per tracking views e analytics
+- [x] Implementare tracking visualizzazioni form
+- [x] Creare pagina Analytics con statistiche dettagliate
+- [x] Implementare grafici con libreria charting
+- [x] Calcolare metriche (tasso completamento, tempo medio, abbandoni)
+- [ ] Implementare export PDF report
+- [x] Testare analytics e grafici
+
+## Integrazione Webhook (Nuova Richiesta)
+- [x] Estendere schema forms con campo webhookUrl
+- [x] Implementare UI per configurare webhook nell'editor
+- [x] Implementare invio dati a webhook su submission
+- [x] Gestire errori e retry webhook
+- [x] Testare integrazione webhook

@@ -22,6 +22,13 @@
       "when": 1762798865425,
       "tag": "0002_messy_deathstrike",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1762814664223,
+      "tag": "0003_familiar_pride",
+      "breakpoints": true
     }
   ]
 }

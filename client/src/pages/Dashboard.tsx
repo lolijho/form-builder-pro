@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Plus, Edit, Trash2, Eye, Copy } from "lucide-react";
+import { Plus, Edit, Trash2, Eye, Copy, TrendingUp } from "lucide-react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
 import {
@@ -170,14 +170,25 @@ export default function Dashboard() {
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => setLocation(`/submissions/${form.id}`)}
-                      className="w-full"
-                    >
-                      Visualizza Risposte
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => setLocation(`/submissions/${form.id}`)}
+                        className="flex-1"
+                      >
+                        Risposte
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => setLocation(`/analytics/${form.id}`)}
+                        className="flex-1"
+                      >
+                        <TrendingUp className="h-4 w-4 mr-2" />
+                        Analytics
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
