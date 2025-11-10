@@ -3,6 +3,7 @@ import { useRoute, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { FormEditor } from "@/components/FormEditor";
 import { StyleCustomizer } from "@/components/StyleCustomizer";
+import { ThemeSelector } from "@/components/ThemeSelector";
 import { FormPreview } from "@/components/FormPreview";
 import { EmbedCodeGenerator } from "@/components/EmbedCodeGenerator";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,7 @@ export default function Editor() {
   const [styles, setStyles] = useState<FormStyles>(defaultFormStyles);
   const [published, setPublished] = useState(false);
   const [emailNotifications, setEmailNotifications] = useState(true);
+  const [activeTab, setActiveTab] = useState<string>("editor");
 
   const { data: form, isLoading } = trpc.forms.getById.useQuery(
     { id: formId! },
@@ -197,57 +199,52 @@ export default function Editor() {
               placeholder="Descrivi brevemente il form..."
               rows={2}
             />
-          </div>
-        </div>
 
-        <Tabs defaultValue="editor" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="editor">Editor</TabsTrigger>
-            <TabsTrigger value="style">Stile</TabsTrigger>
-            <TabsTrigger value="preview">Anteprima</TabsTrigger>
-            <TabsTrigger value="embed" disabled={!formId || !published}>
-              Embed
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="editor" className="mt-6">
-            <FormEditor fields={fields} onChange={setFields} />
-          </TabsContent>
-
-          <TabsContent value="style" className="mt-6">
-            <div className="max-w-2xl mx-auto">
-              <StyleCustomizer styles={styles} onChange={setStyles} />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="preview" className="mt-6">
-            <div className="border rounded-lg overflow-hidden">
-              <FormPreview
-                title={title}
-                description={description}
-                fields={fields}
-                styles={styles}
-                onSubmit={(data) => {
-                  console.log("Preview submit:", data);
-                  toast.info("Questa è solo un'anteprima");
+            <div className="flex items-center gap-2 mb-4">
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="editor">Editor</TabsTrigger>
+                  <TabsTrigger value="style">Stile</TabsTrigger>
+                  <TabsTrigger value="preview">Anteprima</TabsTrigger>
+                </TabsList>
+              </Tabs>
+              <ThemeSelector
+                currentStyles={styles}
+                onApplyTheme={(newStyles) => {
+                  setStyles(newStyles);
+                  toast.success("Tema applicato con successo");
                 }}
               />
             </div>
-          </TabsContent>
 
-          <TabsContent value="embed" className="mt-6">
-            <div className="max-w-3xl mx-auto">
-              <div className="mb-6">
-                <h2 className="text-2xl font-bold mb-2">Codice di Integrazione</h2>
-                <p className="text-muted-foreground">
-                  Usa uno dei metodi seguenti per integrare il form nel tuo sito
-                  web.
-                </p>
-              </div>
-              {formId && <EmbedCodeGenerator formId={formId} />}
-            </div>
-          </TabsContent>
-        </Tabs>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
+              <TabsContent value="editor" className="mt-6">
+                <FormEditor fields={fields} onChange={setFields} />
+              </TabsContent>
+
+              <TabsContent value="style" className="mt-6">
+                <div className="max-w-2xl mx-auto">
+                  <StyleCustomizer styles={styles} onChange={setStyles} />
+                </div>
+              </TabsContent>
+
+              <TabsContent value="preview" className="mt-6">
+                <div className="border rounded-lg overflow-hidden">
+                  <FormPreview
+                    title={title}
+                    description={description}
+                    fields={fields}
+                    styles={styles}
+                    onSubmit={(data) => {
+                      console.log("Preview submit:", data);
+                      toast.info("Questa è solo un'anteprima");
+                    }}
+                  />
+                </div>
+              </TabsContent>
+            </Tabs>
+          </div>
+        </div>
       </div>
     </div>
   );

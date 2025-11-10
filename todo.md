@@ -61,3 +61,11 @@ Tutte le funzionalità core sono state implementate e testate con successo.
 - [x] Creare UI toggle per abilitare/disabilitare notifiche
 - [x] Implementare invio notifica al proprietario su submission
 - [x] Testare invio notifiche email
+
+
+## Temi Predefiniti (Nuova Richiesta)
+- [x] Definire palette colori per 5 temi professionali
+- [x] Creare file con configurazioni temi
+- [x] Implementare UI selettore temi nell'editor
+- [x] Implementare anteprima temi
+- [x] Testare applicazione temi
