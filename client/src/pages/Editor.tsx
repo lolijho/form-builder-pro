@@ -239,8 +239,26 @@ export default function Editor() {
               </TabsContent>
 
               <TabsContent value="style" className="mt-6">
-                <div className="max-w-2xl mx-auto">
-                  <StyleCustomizer styles={styles} onChange={setStyles} />
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">Personalizza Stile</h3>
+                    <StyleCustomizer styles={styles} onChange={setStyles} />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">Anteprima Live</h3>
+                    <div className="border rounded-lg overflow-hidden bg-muted/20">
+                      <FormPreview
+                        title={title}
+                        description={description}
+                        fields={fields}
+                        styles={styles}
+                        onSubmit={(data) => {
+                          console.log("Preview submit:", data);
+                          toast.info("Questa è solo un'anteprima");
+                        }}
+                      />
+                    </div>
+                  </div>
                 </div>
               </TabsContent>
 

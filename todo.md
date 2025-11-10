@@ -100,3 +100,9 @@ Tutte le funzionalità core sono state implementate e testate con successo.
 - [x] Implementare invio dati a webhook su submission
 - [x] Gestire errori e retry webhook
 - [x] Testare integrazione webhook
+
+
+## Anteprima Live nella Tab Stile (Nuova Richiesta)
+- [x] Modificare layout tab Stile per mostrare StyleCustomizer e FormPreview affiancati
+- [x] Implementare aggiornamento real-time dell'anteprima quando cambiano gli stili
+- [x] Testare responsività del layout a due colonne
