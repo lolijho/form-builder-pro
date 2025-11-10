@@ -114,6 +114,32 @@ export const appRouter = router({
         await db.updateForm(input.id, { published: input.published ? 1 : 0 });
         return { success: true };
       }),
+
+    duplicate: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        const originalForm = await db.getFormById(input.id);
+        if (!originalForm) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Form not found" });
+        }
+        if (originalForm.userId !== ctx.user.id) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
+        }
+
+        // Create a copy with modified title
+        const newTitle = `${originalForm.title} (Copia)`;
+        const newForm = await db.createForm({
+          userId: ctx.user.id,
+          title: newTitle,
+          description: originalForm.description,
+          fields: originalForm.fields,
+          styles: originalForm.styles,
+          published: 0, // New form starts unpublished
+          emailNotifications: originalForm.emailNotifications,
+        });
+
+        return { id: newForm.id, success: true };
+      }),
   }),
 
   submissions: router({

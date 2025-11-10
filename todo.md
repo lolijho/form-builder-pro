@@ -69,3 +69,10 @@ Tutte le funzionalità core sono state implementate e testate con successo.
 - [x] Implementare UI selettore temi nell'editor
 - [x] Implementare anteprima temi
 - [x] Testare applicazione temi
+
+
+## Duplicazione Form (Nuova Richiesta)
+- [x] Implementare API tRPC per duplicare form
+- [x] Aggiungere pulsante "Duplica" nella dashboard
+- [x] Implementare logica di copia con nuovo titolo
+- [x] Testare duplicazione completa

@@ -41,8 +41,22 @@ export default function Dashboard() {
     },
   });
 
+  const duplicateMutation = trpc.forms.duplicate.useMutation({
+    onSuccess: (data) => {
+      toast.success("Form duplicato con successo");
+      utils.forms.list.invalidate();
+    },
+    onError: (error) => {
+      toast.error(`Errore: ${error.message}`);
+    },
+  });
+
   const handleDelete = (id: number) => {
     deleteMutation.mutate({ id });
+  };
+
+  const handleDuplicate = (id: number) => {
+    duplicateMutation.mutate({ id });
   };
 
   const formatDate = (date: Date) => {
@@ -140,6 +154,14 @@ export default function Dashboard() {
                           <Eye className="h-4 w-4" />
                         </Button>
                       )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDuplicate(form.id)}
+                        disabled={duplicateMutation.isPending}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
                       <Button
                         variant="outline"
                         size="sm"

@@ -94,7 +94,9 @@ export async function createForm(form: InsertForm) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   const result = await db.insert(forms).values(form);
-  return result;
+  // Get the inserted ID from the result
+  const insertId = (result as any).insertId || (result as any)[0]?.insertId;
+  return { id: insertId as number };
 }
 
 export async function getFormById(id: number) {
