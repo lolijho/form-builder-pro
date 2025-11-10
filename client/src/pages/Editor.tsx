@@ -26,6 +26,7 @@ export default function Editor() {
   const [fields, setFields] = useState<FormField[]>([]);
   const [styles, setStyles] = useState<FormStyles>(defaultFormStyles);
   const [published, setPublished] = useState(false);
+  const [emailNotifications, setEmailNotifications] = useState(true);
 
   const { data: form, isLoading } = trpc.forms.getById.useQuery(
     { id: formId! },
@@ -71,6 +72,7 @@ export default function Editor() {
       setFields(JSON.parse(form.fields));
       setStyles(JSON.parse(form.styles));
       setPublished(form.published === 1);
+      setEmailNotifications(form.emailNotifications === 1);
     }
   }, [form]);
 
@@ -88,7 +90,7 @@ export default function Editor() {
     };
 
     if (formId) {
-      updateMutation.mutate({ id: formId, ...formData });
+      updateMutation.mutate({ id: formId, ...formData, emailNotifications: emailNotifications ? 1 : 0 });
     } else {
       createMutation.mutate(formData);
     }
@@ -101,6 +103,17 @@ export default function Editor() {
     }
     publishMutation.mutate({ id: formId, published: !published });
     setPublished(!published);
+  };
+
+  const handleEmailNotificationsToggle = () => {
+    if (!formId) {
+      toast.error("Salva il form prima di modificare le notifiche");
+      return;
+    }
+    const newValue = !emailNotifications;
+    updateMutation.mutate({ id: formId, emailNotifications: newValue ? 1 : 0 });
+    setEmailNotifications(newValue);
+    toast.success(newValue ? "Notifiche email attivate" : "Notifiche email disattivate");
   };
 
   if (isLoading) {
@@ -132,14 +145,24 @@ export default function Editor() {
             </div>
             <div className="flex items-center gap-4">
               {formId && (
-                <div className="flex items-center gap-2">
-                  <Label htmlFor="publish-toggle">Pubblicato</Label>
-                  <Switch
-                    id="publish-toggle"
-                    checked={published}
-                    onCheckedChange={handlePublishToggle}
-                  />
-                </div>
+                <>
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="publish-toggle">Pubblicato</Label>
+                    <Switch
+                      id="publish-toggle"
+                      checked={published}
+                      onCheckedChange={handlePublishToggle}
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="email-toggle">Notifiche Email</Label>
+                    <Switch
+                      id="email-toggle"
+                      checked={emailNotifications}
+                      onCheckedChange={handleEmailNotificationsToggle}
+                    />
+                  </div>
+                </>
               )}
               <Button onClick={handleSave} disabled={createMutation.isPending || updateMutation.isPending}>
                 {createMutation.isPending || updateMutation.isPending ? (

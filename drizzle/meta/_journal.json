@@ -15,6 +15,13 @@
       "when": 1762711098483,
       "tag": "0001_slippery_moondragon",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1762798865425,
+      "tag": "0002_messy_deathstrike",
+      "breakpoints": true
     }
   ]
 }

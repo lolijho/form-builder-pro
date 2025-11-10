@@ -5,6 +5,8 @@ import { publicProcedure, router, protectedProcedure } from "./_core/trpc";
 import { z } from "zod";
 import * as db from "./db";
 import { TRPCError } from "@trpc/server";
+import { notifyOwner } from "./_core/notification";
+import { getUserByOpenId } from "./db";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -55,6 +57,7 @@ export const appRouter = router({
           fields: input.fields,
           styles: input.styles,
           published: 0,
+          emailNotifications: 1,
         });
         return { success: true };
       }),
@@ -68,6 +71,7 @@ export const appRouter = router({
           fields: z.string().optional(),
           styles: z.string().optional(),
           published: z.number().optional(),
+          emailNotifications: z.number().optional(),
         })
       )
       .mutation(async ({ input, ctx }) => {
@@ -181,12 +185,41 @@ export const appRouter = router({
         if (!form || form.published !== 1) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Form not found or not published" });
         }
+        
+        // Create submission
         await db.createSubmission({
           formId: input.formId,
           data: input.data,
           ipAddress: input.ipAddress || null,
           userAgent: input.userAgent || null,
         });
+
+        // Send email notification if enabled
+        if (form.emailNotifications === 1) {
+          try {
+            const submissionData = JSON.parse(input.data);
+            const fields = JSON.parse(form.fields);
+            
+            // Format submission data for email
+            let formattedData = "";
+            fields.forEach((field: any) => {
+              const value = submissionData[field.id];
+              if (value !== undefined && value !== null && value !== "") {
+                const displayValue = Array.isArray(value) ? value.join(", ") : value;
+                formattedData += `**${field.label}:** ${displayValue}\n\n`;
+              }
+            });
+
+            await notifyOwner({
+              title: `Nuova submission: ${form.title}`,
+              content: `Hai ricevuto una nuova risposta al form "${form.title}".\n\n${formattedData}\n---\n\nVisualizza tutte le risposte nella dashboard.`,
+            });
+          } catch (error) {
+            console.error("Failed to send email notification:", error);
+            // Don't fail the submission if notification fails
+          }
+        }
+        
         return { success: true };
       }),
   }),

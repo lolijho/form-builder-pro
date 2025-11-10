@@ -39,6 +39,8 @@ export const forms = mysqlTable("forms", {
   styles: text("styles").notNull(),
   /** Whether the form is published and accessible via embed */
   published: int("published").default(0).notNull(), // 0 = draft, 1 = published
+  /** Whether to send email notifications on new submissions */
+  emailNotifications: int("emailNotifications").default(1).notNull(), // 0 = disabled, 1 = enabled
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

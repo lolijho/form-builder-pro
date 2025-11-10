@@ -1,0 +1,1 @@
+ALTER TABLE `forms` ADD `emailNotifications` int DEFAULT 1 NOT NULL;

@@ -53,3 +53,11 @@ Tutte le funzionalità core sono state implementate e testate con successo.
 - [x] Implementare valutazione condizioni in FormPreview
 - [x] Implementare valutazione condizioni in PublicForm
 - [x] Testare logica condizionale con vari scenari
+
+
+## Notifiche Email (Nuova Richiesta)
+- [x] Aggiungere campo emailNotifications allo schema forms
+- [x] Aggiornare API per gestire opzione notifiche
+- [x] Creare UI toggle per abilitare/disabilitare notifiche
+- [x] Implementare invio notifica al proprietario su submission
+- [x] Testare invio notifiche email
