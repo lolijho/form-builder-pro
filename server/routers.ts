@@ -6,6 +6,7 @@ import { z } from "zod";
 import * as db from "./db";
 import { TRPCError } from "@trpc/server";
 import { notifyOwner } from "./_core/notification";
+import { sendAutoResponder, extractEmailFromFormData } from "./_core/autoResponder";
 import { getUserByOpenId } from "./db";
 
 export const appRouter = router({
@@ -66,13 +67,16 @@ export const appRouter = router({
       .input(
         z.object({
           id: z.number(),
-          title: z.string().optional(),
+          title: z.string().min(1).max(255).optional(),
           description: z.string().optional(),
           fields: z.string().optional(),
           styles: z.string().optional(),
           published: z.number().optional(),
           emailNotifications: z.number().optional(),
           webhookUrl: z.string().optional(),
+          autoResponderEnabled: z.number().optional(),
+          autoResponderSubject: z.string().optional(),
+          autoResponderMessage: z.string().optional(),
         })
       )
       .mutation(async ({ input, ctx }) => {
@@ -298,8 +302,27 @@ export const appRouter = router({
           userAgent: input.userAgent || null,
         });
 
-      // Send webhook if configured
-      if (form.webhookUrl) {
+        // Send auto-responder email to user if enabled
+        if (form.autoResponderEnabled && form.autoResponderSubject && form.autoResponderMessage) {
+          try {
+            const formData = typeof input.data === 'string' ? JSON.parse(input.data) : input.data;
+            const userEmail = extractEmailFromFormData(formData);
+            if (userEmail) {
+              await sendAutoResponder({
+                userEmail,
+                subject: form.autoResponderSubject,
+                message: form.autoResponderMessage,
+                formData,
+              });
+            }
+          } catch (error) {
+            console.error("Failed to send auto-responder:", error);
+            // Don't fail the submission if auto-responder fails
+          }
+        }
+
+        // Send webhook if configured
+        if (form.webhookUrl) {
         try {
           await fetch(form.webhookUrl, {
             method: "POST",

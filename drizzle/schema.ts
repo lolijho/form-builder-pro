@@ -42,7 +42,10 @@ export const forms = mysqlTable("forms", {
   /** Whether to send email notifications on new submissions */
   emailNotifications: int("emailNotifications").default(1).notNull(), // 0 = disabled, 1 = enabled
   /** Webhook URL to send submission data to external services */
-  webhookUrl: varchar("webhookUrl", { length: 500 }),
+  webhookUrl: varchar("webhookUrl", { length: 512 }),
+  autoResponderEnabled: int("autoResponderEnabled").default(0).notNull(),
+  autoResponderSubject: varchar("autoResponderSubject", { length: 255 }),
+  autoResponderMessage: text("autoResponderMessage"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -65,6 +68,18 @@ export const submissions = mysqlTable("submissions", {
 
 export type Submission = typeof submissions.$inferSelect;
 export type InsertSubmission = typeof submissions.$inferInsert;
+
+export const teamMembers = mysqlTable("team_members", {
+  id: int("id").autoincrement().primaryKey(),
+  formId: int("formId").notNull(),
+  userId: int("userId").notNull(),
+  role: mysqlEnum("role", ["owner", "editor", "viewer"]).notNull(),
+  invitedBy: int("invitedBy").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type TeamMember = typeof teamMembers.$inferSelect;
+export type InsertTeamMember = typeof teamMembers.$inferInsert;
 
 // Analytics table for tracking form views and interactions
 export const formAnalytics = mysqlTable("formAnalytics", {

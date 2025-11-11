@@ -130,3 +130,26 @@ Tutte le funzionalità core sono state implementate e testate con successo.
 - [x] Aggiungere preview template nella galleria
 - [x] Integrare galleria nel flusso di creazione form
 - [x] Testare creazione form da template
+
+
+## Auto-Responder Email Utenti (Nuova Richiesta)
+- [x] Estendere schema forms con campi autoResponder (enabled, subject, message)
+- [x] Implementare UI nell'editor per configurare auto-responder
+- [x] Implementare invio email utente su submission
+- [x] Supportare variabili dinamiche nel messaggio ({{nome}}, {{email}}, ecc.)
+- [x] Testare auto-responder con vari scenari
+
+## Export PDF Analytics (Nuova Richiesta)
+- [x] Installare libreria per generazione PDF
+- [x] Implementare funzione export PDF con grafici
+- [x] Aggiungere pulsante export nella pagina Analytics
+- [x] Includere logo, metriche chiave e grafici nel PDF
+- [x] Testare export PDF con dati reali
+
+## Sistema Team e Permessi (Nuova Richiesta)
+- [x] Estendere schema con tabella team_members
+- [ ] Implementare API per gestione membri team
+- [ ] Implementare UI per invitare membri e gestire ruoli
+- [ ] Implementare controllo permessi nelle API
+- [ ] Aggiungere filtri per visualizzare solo form accessibili
+- [ ] Testare collaborazione multi-utente

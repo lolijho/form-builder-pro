@@ -1,6 +1,6 @@
 import { eq, desc, and, gte, lte, count } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, forms, InsertForm, submissions, InsertSubmission, formAnalytics, InsertFormAnalytics } from "../drizzle/schema";
+import { InsertUser, users, forms, InsertForm, submissions, InsertSubmission, formAnalytics, InsertFormAnalytics, teamMembers, InsertTeamMember } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -207,4 +207,55 @@ export async function getFormStats(formId: number) {
     starts: Number(starts[0]?.count || 0),
     submissions: Number(submits[0]?.count || 0),
   };
+}
+
+export async function addTeamMember(member: InsertTeamMember) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db.insert(teamMembers).values(member);
+  return result;
+}
+
+export async function getTeamMembers(formId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const members = await db
+    .select({
+      id: teamMembers.id,
+      formId: teamMembers.formId,
+      userId: teamMembers.userId,
+      role: teamMembers.role,
+      invitedBy: teamMembers.invitedBy,
+      createdAt: teamMembers.createdAt,
+      userName: users.name,
+      userEmail: users.email,
+    })
+    .from(teamMembers)
+    .leftJoin(users, eq(teamMembers.userId, users.id))
+    .where(eq(teamMembers.formId, formId));
+  
+  return members;
+}
+
+export async function removeTeamMember(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db.delete(teamMembers).where(eq(teamMembers.id, id));
+  return result;
+}
+
+export async function getUserRole(formId: number, userId: number): Promise<string | null> {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const member = await db
+    .select()
+    .from(teamMembers)
+    .where(and(eq(teamMembers.formId, formId), eq(teamMembers.userId, userId)))
+    .limit(1);
+  
+  return member.length > 0 ? member[0].role : null;
 }

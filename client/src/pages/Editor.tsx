@@ -9,8 +9,8 @@ import { MultiStepFormPreview } from "@/components/MultiStepFormPreview";
 import { EmbedCodeGenerator } from "@/components/EmbedCodeGenerator";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FormField, FormStyles, defaultFormStyles } from "@shared/formTypes";
 import { toast } from "sonner";
@@ -31,6 +31,11 @@ export default function Editor() {
   const [published, setPublished] = useState(false);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [webhookUrl, setWebhookUrl] = useState("");
+  const [autoResponderEnabled, setAutoResponderEnabled] = useState(false);
+  const [autoResponderSubject, setAutoResponderSubject] = useState("Grazie per la tua richiesta");
+  const [autoResponderMessage, setAutoResponderMessage] = useState(
+    "Ciao {{nome}},\n\nGrazie per aver compilato il nostro form. Abbiamo ricevuto la tua richiesta e ti risponderemo al più presto.\n\nCordiali saluti"
+  );
   const [multiStep, setMultiStep] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("editor");
 
@@ -49,6 +54,9 @@ export default function Editor() {
             styles: JSON.stringify(styles),
             emailNotifications: emailNotifications ? 1 : 0,
             webhookUrl: webhookUrl || undefined,
+            autoResponderEnabled: autoResponderEnabled ? 1 : 0,
+            autoResponderSubject: autoResponderEnabled ? autoResponderSubject : undefined,
+            autoResponderMessage: autoResponderEnabled ? autoResponderMessage : undefined,
           },
           {
             onSuccess: () => resolve(),
@@ -107,6 +115,12 @@ export default function Editor() {
       setPublished(form.published === 1);
       setEmailNotifications(form.emailNotifications === 1);
       setWebhookUrl(form.webhookUrl || "");
+      setAutoResponderEnabled(!!form.autoResponderEnabled);
+      setAutoResponderSubject(form.autoResponderSubject || "Grazie per la tua richiesta");
+      setAutoResponderMessage(
+        form.autoResponderMessage ||
+          "Ciao {{nome}},\n\nGrazie per aver compilato il nostro form. Abbiamo ricevuto la tua richiesta e ti risponderemo al più presto.\n\nCordiali saluti"
+      );
       // Check if form has multi-step fields
       const hasMultiStep = JSON.parse(form.fields).some((f: FormField) => f.step && f.step > 1);
       setMultiStep(hasMultiStep);
@@ -118,7 +132,7 @@ export default function Editor() {
     if (formId) {
       resetTimer();
     }
-  }, [title, description, fields, styles, emailNotifications, webhookUrl, resetTimer, formId]);
+  }, [title, description, fields, styles, emailNotifications, webhookUrl, autoResponderEnabled, autoResponderSubject, autoResponderMessage, resetTimer, formId]);
 
   const handleSave = () => {
     if (!title.trim()) {
@@ -248,6 +262,40 @@ export default function Editor() {
                       className="w-64"
                     />
                   </div>
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="auto-responder-toggle">Auto-Responder Email</Label>
+                    <Switch
+                      id="auto-responder-toggle"
+                      checked={autoResponderEnabled}
+                      onCheckedChange={setAutoResponderEnabled}
+                    />
+                  </div>
+                  {autoResponderEnabled && (
+                    <div className="space-y-4 p-4 border rounded-lg">
+                      <div>
+                        <Label htmlFor="auto-responder-subject">Oggetto Email</Label>
+                        <Input
+                          id="auto-responder-subject"
+                          value={autoResponderSubject}
+                          onChange={(e) => setAutoResponderSubject(e.target.value)}
+                          placeholder="Grazie per la tua richiesta"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="auto-responder-message">Messaggio Email</Label>
+                        <Textarea
+                          id="auto-responder-message"
+                          value={autoResponderMessage}
+                          onChange={(e) => setAutoResponderMessage(e.target.value)}
+                          placeholder="Ciao {{nome}},\n\nGrazie per aver compilato il nostro form..."
+                          rows={6}
+                        />
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Usa variabili come {'{{'}nome{'}}'}, {'{{'}email{'}}'}, ecc. per personalizzare il messaggio con i dati del form.
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </>
               )}
               <Button onClick={handleSave} disabled={createMutation.isPending || updateMutation.isPending}>

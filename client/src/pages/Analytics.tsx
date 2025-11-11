@@ -1,6 +1,8 @@
 import { useRoute } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
+import { exportAnalyticsPDF } from "@/utils/pdfExport";
+import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Download, TrendingUp, Users, CheckCircle, Clock } from "lucide-react";
 import { Link } from "wouter";
@@ -63,6 +65,32 @@ export default function Analytics() {
   const conversionRate = stats.views > 0 ? ((stats.submissions / stats.views) * 100).toFixed(1) : "0.0";
   const completionRate = stats.starts > 0 ? ((stats.submissions / stats.starts) * 100).toFixed(1) : "0.0";
 
+  const handleExportPDF = async () => {
+    try {
+      await exportAnalyticsPDF(
+        {
+          formTitle: form.title,
+          totalViews: stats.views,
+          totalSubmissions: stats.submissions,
+          conversionRate: parseFloat(conversionRate),
+          avgCompletionTime: 0, // We don't track this yet
+          lastUpdated: new Date().toLocaleDateString("it-IT", {
+            day: "2-digit",
+            month: "long",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+        },
+        "analytics-charts"
+      );
+      toast.success("Report PDF scaricato con successo");
+    } catch (error) {
+      console.error("Failed to export PDF:", error);
+      toast.error("Errore durante l'esportazione del PDF");
+    }
+  };
+
   const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444"];
 
   const funnelData = [
@@ -98,7 +126,7 @@ export default function Analytics() {
               <option value="90d">Ultimi 90 giorni</option>
               <option value="all">Tutto il periodo</option>
             </select>
-            <Button variant="outline">
+            <Button variant="outline" onClick={handleExportPDF}>
               <Download className="h-4 w-4 mr-2" />
               Esporta PDF
             </Button>
@@ -106,6 +134,7 @@ export default function Analytics() {
         </div>
 
         {/* KPI Cards */}
+        <div id="analytics-charts">
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -274,6 +303,7 @@ export default function Analytics() {
               </p>
             </CardContent>
           </Card>
+        </div>
         </div>
       </div>
     </div>
