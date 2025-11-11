@@ -5,6 +5,7 @@ import { FormEditor } from "@/components/FormEditor";
 import { StyleCustomizer } from "@/components/StyleCustomizer";
 import { ThemeSelector } from "@/components/ThemeSelector";
 import { FormPreview } from "@/components/FormPreview";
+import { MultiStepFormPreview } from "@/components/MultiStepFormPreview";
 import { EmbedCodeGenerator } from "@/components/EmbedCodeGenerator";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +14,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FormField, FormStyles, defaultFormStyles } from "@shared/formTypes";
 import { toast } from "sonner";
-import { ArrowLeft, Save, Eye, Code } from "lucide-react";
+import { useAutoSave } from "@/hooks/useAutoSave";
+import { ArrowLeft, Save, Eye, Code, Check, AlertCircle } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Loader2 } from "lucide-react";
 
@@ -29,7 +31,35 @@ export default function Editor() {
   const [published, setPublished] = useState(false);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [webhookUrl, setWebhookUrl] = useState("");
+  const [multiStep, setMultiStep] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("editor");
+
+  // Auto-save functionality
+  const { status: autoSaveStatus, lastSaved, resetTimer } = useAutoSave({
+    onSave: async () => {
+      if (!formId || !title.trim()) return;
+      
+      return new Promise<void>((resolve, reject) => {
+        updateMutation.mutate(
+          { 
+            id: formId, 
+            title,
+            description,
+            fields: JSON.stringify(fields),
+            styles: JSON.stringify(styles),
+            emailNotifications: emailNotifications ? 1 : 0,
+            webhookUrl: webhookUrl || undefined,
+          },
+          {
+            onSuccess: () => resolve(),
+            onError: (error) => reject(error),
+          }
+        );
+      });
+    },
+    delay: 30000, // 30 seconds
+    enabled: !!formId && !!title.trim(),
+  });
 
   const { data: form, isLoading } = trpc.forms.getById.useQuery(
     { id: formId! },
@@ -77,8 +107,18 @@ export default function Editor() {
       setPublished(form.published === 1);
       setEmailNotifications(form.emailNotifications === 1);
       setWebhookUrl(form.webhookUrl || "");
+      // Check if form has multi-step fields
+      const hasMultiStep = JSON.parse(form.fields).some((f: FormField) => f.step && f.step > 1);
+      setMultiStep(hasMultiStep);
     }
   }, [form]);
+
+  // Reset auto-save timer when data changes
+  useEffect(() => {
+    if (formId) {
+      resetTimer();
+    }
+  }, [title, description, fields, styles, emailNotifications, webhookUrl, resetTimer, formId]);
 
   const handleSave = () => {
     if (!title.trim()) {
@@ -153,6 +193,34 @@ export default function Editor() {
               </div>
             </div>
             <div className="flex items-center gap-4">
+              {/* Auto-save indicator */}
+              {formId && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  {autoSaveStatus === "saving" && (
+                    <>
+                      <Save className="h-4 w-4 animate-pulse" />
+                      <span>Salvataggio...</span>
+                    </>
+                  )}
+                  {autoSaveStatus === "saved" && (
+                    <>
+                      <Check className="h-4 w-4 text-green-500" />
+                      <span>Salvato</span>
+                    </>
+                  )}
+                  {autoSaveStatus === "error" && (
+                    <>
+                      <AlertCircle className="h-4 w-4 text-red-500" />
+                      <span>Errore</span>
+                    </>
+                  )}
+                  {autoSaveStatus === "idle" && lastSaved && (
+                    <span>
+                      {lastSaved.toLocaleTimeString()}
+                    </span>
+                  )}
+                </div>
+              )}
               {formId && (
                 <>
                   <div className="flex items-center gap-2">
@@ -263,17 +331,38 @@ export default function Editor() {
               </TabsContent>
 
               <TabsContent value="preview" className="mt-6">
-                <div className="border rounded-lg overflow-hidden">
-                  <FormPreview
-                    title={title}
-                    description={description}
-                    fields={fields}
-                    styles={styles}
-                    onSubmit={(data) => {
-                      console.log("Preview submit:", data);
-                      toast.info("Questa è solo un'anteprima");
-                    }}
+                <div className="mb-4 flex items-center gap-2">
+                  <Switch
+                    id="multi-step-toggle"
+                    checked={multiStep}
+                    onCheckedChange={setMultiStep}
                   />
+                  <Label htmlFor="multi-step-toggle">Abilita Form Multi-Step</Label>
+                </div>
+                <div className="border rounded-lg overflow-hidden">
+                  {multiStep ? (
+                    <MultiStepFormPreview
+                      title={title}
+                      description={description}
+                      fields={fields}
+                      styles={styles}
+                      onSubmit={(data) => {
+                        console.log("Preview submit:", data);
+                        toast.info("Questa è solo un'anteprima");
+                      }}
+                    />
+                  ) : (
+                    <FormPreview
+                      title={title}
+                      description={description}
+                      fields={fields}
+                      styles={styles}
+                      onSubmit={(data) => {
+                        console.log("Preview submit:", data);
+                        toast.info("Questa è solo un'anteprima");
+                      }}
+                    />
+                  )}
                 </div>
               </TabsContent>
             </Tabs>

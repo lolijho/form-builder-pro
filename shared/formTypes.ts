@@ -49,6 +49,8 @@ export interface FormField {
   validation?: FieldValidation;
   /** Conditional rules - field is shown only if ALL rules match */
   conditionalRules?: ConditionalRule[];
+  /** Step number for multi-step forms (1-based index, undefined = step 1) */
+  step?: number;
 }
 
 export interface FormStyles {

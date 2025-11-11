@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Plus, Edit, Trash2, Eye, Copy, TrendingUp } from "lucide-react";
+import { Plus, Edit, Trash2, Eye, Copy, TrendingUp, Sparkles } from "lucide-react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
 import {
@@ -88,10 +88,16 @@ export default function Dashboard() {
               Gestisci e crea i tuoi form personalizzati
             </p>
           </div>
-          <Button onClick={() => setLocation("/editor/new")} size="lg">
-            <Plus className="h-5 w-5 mr-2" />
-            Nuovo Form
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setLocation("/templates")} size="lg">
+              <Sparkles className="h-5 w-5 mr-2" />
+              Usa un Template
+            </Button>
+            <Button onClick={() => setLocation("/editor/new")} size="lg">
+              <Plus className="h-5 w-5 mr-2" />
+              Nuovo Form
+            </Button>
+          </div>
         </div>
 
         {!forms || forms.length === 0 ? (

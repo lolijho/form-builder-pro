@@ -9,6 +9,7 @@ import { X } from "lucide-react";
 import { ConditionalRulesEditor } from "./ConditionalRulesEditor";
 import { ValidationEditor } from "./ValidationEditor";
 import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface FieldPropertiesPanelProps {
   field: FormField | null;
@@ -103,6 +104,33 @@ export function FieldPropertiesPanel({
             />
           </div>
         )}
+
+        <Separator className="my-6" />
+
+        {/* Step Assignment for Multi-Step Forms */}
+        <div>
+          <Label htmlFor="step">Step (per form multi-pagina)</Label>
+          <Select
+            value={String(editedField.step || 1)}
+            onValueChange={(value) => {
+              setEditedField({ ...editedField, step: parseInt(value) });
+            }}
+          >
+            <SelectTrigger id="step">
+              <SelectValue placeholder="Seleziona step" />
+            </SelectTrigger>
+            <SelectContent>
+              {[1, 2, 3, 4, 5].map((stepNum) => (
+                <SelectItem key={stepNum} value={String(stepNum)}>
+                  Step {stepNum}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-muted-foreground mt-1">
+            Assegna questo campo a uno step specifico per form multi-pagina
+          </p>
+        </div>
 
         <Separator className="my-6" />
 

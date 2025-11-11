@@ -106,3 +106,27 @@ Tutte le funzionalità core sono state implementate e testate con successo.
 - [x] Modificare layout tab Stile per mostrare StyleCustomizer e FormPreview affiancati
 - [x] Implementare aggiornamento real-time dell'anteprima quando cambiano gli stili
 - [x] Testare responsività del layout a due colonne
+
+
+## Form Multi-Step (Nuova Richiesta)
+- [x] Estendere FormField type con campo stepNumber
+- [x] Creare componente StepIndicator per progress bar
+- [x] Implementare logica navigazione tra step
+- [x] Implementare validazione per step
+- [x] Aggiungere UI nell'editor per assegnare campi agli step
+- [x] Testare form multi-step con vari scenari
+
+## Auto-Save Automatico (Nuova Richiesta)
+- [x] Implementare hook useAutoSave con debounce
+- [x] Aggiungere indicatore visivo stato salvataggio
+- [x] Implementare salvataggio ogni 30 secondi
+- [x] Gestire conflitti e errori di salvataggio
+- [x] Testare auto-save con modifiche rapide
+
+## Galleria Template (Nuova Richiesta)
+- [x] Creare 5 template predefiniti (Contatto, Registrazione, Sondaggio, Lead Gen, Feedback)
+- [x] Implementare pagina TemplateGallery
+- [x] Aggiungere funzione "Usa Template" che crea form da template
+- [x] Aggiungere preview template nella galleria
+- [x] Integrare galleria nel flusso di creazione form
+- [x] Testare creazione form da template

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useRoute } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { FormPreview } from "@/components/FormPreview";
+import { MultiStepFormPreview } from "@/components/MultiStepFormPreview";
 import { FormField, FormStyles } from "@shared/formTypes";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -80,7 +81,18 @@ export default function PublicForm() {
   const fields: FormField[] = JSON.parse(form.fields);
   const styles: FormStyles = JSON.parse(form.styles);
 
-  return (
+  // Check if form is multi-step
+  const isMultiStep = fields.some((f) => f.step && f.step > 1);
+
+  return isMultiStep ? (
+    <MultiStepFormPreview
+      title={form.title}
+      description={form.description || undefined}
+      fields={fields}
+      styles={styles}
+      onSubmit={handleSubmit}
+    />
+  ) : (
     <FormPreview
       title={form.title}
       description={form.description || undefined}

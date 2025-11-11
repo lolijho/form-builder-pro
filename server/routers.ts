@@ -50,7 +50,7 @@ export const appRouter = router({
         })
       )
       .mutation(async ({ input, ctx }) => {
-        await db.createForm({
+        const formId = await db.createForm({
           userId: ctx.user.id,
           title: input.title,
           description: input.description || null,
@@ -59,7 +59,7 @@ export const appRouter = router({
           published: 0,
           emailNotifications: 1,
         });
-        return { success: true };
+        return { success: true, id: formId };
       }),
 
     update: protectedProcedure
