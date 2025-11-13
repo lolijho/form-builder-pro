@@ -153,3 +153,14 @@ Tutte le funzionalità core sono state implementate e testate con successo.
 - [ ] Implementare controllo permessi nelle API
 - [ ] Aggiungere filtri per visualizzare solo form accessibili
 - [ ] Testare collaborazione multi-utente
+
+
+## Deploy Railway e Netlify (Nuova Richiesta)
+- [x] Creare railway.json per configurazione Railway
+- [x] Creare Procfile per Railway
+- [x] Creare netlify.toml per configurazione Netlify
+- [x] Aggiornare package.json con script build separati
+- [x] Creare file .env.example con tutte le variabili necessarie
+- [x] Creare guida DEPLOY.md con istruzioni passo-passo
+- [x] Testare build di produzione
+- [ ] Push configurazioni su GitHub
