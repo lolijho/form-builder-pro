@@ -65,9 +65,13 @@ BUILT_IN_FORGE_API_KEY=your-api-key
 
 ### 2.3 Configura il build
 
-Railway dovrebbe rilevare automaticamente la configurazione da `railway.json`. Se necessario, verifica:
+Railway dovrebbe rilevare automaticamente la configurazione da `railway.json`. Il comando di build include:
+- Build del client (`pnpm build:client`)
+- Copia dei file statici in `dist/public`
+- Build del server (`pnpm build:server`)
 
-- **Build Command:** `pnpm install && pnpm build:server`
+Se Railway non legge automaticamente il `railway.json`, configura manualmente:
+- **Build Command:** `pnpm install && pnpm build:client && mkdir -p dist && cp -r client/dist dist/public && pnpm build:server`
 - **Start Command:** `node dist/server.js`
 
 ### 2.4 Ottieni l'URL del backend

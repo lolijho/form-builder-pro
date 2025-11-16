@@ -2,7 +2,7 @@
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
     "builder": "NIXPACKS",
-    "buildCommand": "pnpm install && pnpm build:server"
+    "buildCommand": "pnpm install && pnpm build:client && mkdir -p dist && cp -r client/dist dist/public && pnpm build:server"
   },
   "deploy": {
     "startCommand": "node dist/server.js",
