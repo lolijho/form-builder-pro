@@ -8,8 +8,21 @@ import { createServer as createViteServer } from "vite";
 import viteConfig from "../../vite.config";
 
 // Get directory name that works in both ESM and after bundling
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// After esbuild bundling, import.meta.url might not be available, so we use a fallback
+let __dirname: string;
+try {
+  // Check if import.meta.url exists and is a string
+  if (typeof import.meta.url === "string" && import.meta.url) {
+    const __filename = fileURLToPath(import.meta.url);
+    __dirname = path.dirname(__filename);
+  } else {
+    throw new Error("import.meta.url not available");
+  }
+} catch {
+  // Fallback for bundled code: use process.cwd()
+  // In Railway, the working directory is /app, and dist/ is at /app/dist
+  __dirname = process.cwd();
+}
 
 export async function setupVite(app: Express, server: Server) {
   const serverOptions = {
@@ -54,35 +67,45 @@ export async function setupVite(app: Express, server: Server) {
 
 export function serveStatic(app: Express) {
   // In production, the server runs from dist/server.js
-  // So __dirname points to dist/, and we need dist/public
+  // After bundling, __dirname might be undefined, so we use process.cwd() as fallback
   // Try multiple possible locations
   let distPath: string;
   
+  const cwd = process.cwd();
+  
   // First try: dist/public (production - server bundled in dist/)
-  const distPublic = path.resolve(__dirname, "public");
+  // If __dirname is valid and points to dist/, use it
+  let distPublic: string;
+  if (__dirname && __dirname !== cwd) {
+    distPublic = path.resolve(__dirname, "public");
+  } else {
+    distPublic = path.resolve(cwd, "dist", "public");
+  }
+  
   // Second try: relative to process.cwd() (fallback)
-  const cwdPublic = path.resolve(process.cwd(), "dist", "public");
+  const cwdPublic = path.resolve(cwd, "dist", "public");
+  
+  // Third try: client/dist (for Netlify-like setups)
+  const clientDist = path.resolve(cwd, "client", "dist");
   
   if (fs.existsSync(distPublic)) {
     distPath = distPublic;
   } else if (fs.existsSync(cwdPublic)) {
     distPath = cwdPublic;
+  } else if (fs.existsSync(clientDist)) {
+    distPath = clientDist;
   } else {
-    // Last resort: try client/dist (for Netlify-like setups)
-    const clientDist = path.resolve(process.cwd(), "client", "dist");
-    if (fs.existsSync(clientDist)) {
-      distPath = clientDist;
-    } else {
-      distPath = distPublic; // Use default even if it doesn't exist
-      console.error(
-        `Could not find the build directory. Tried:\n` +
-        `  - ${distPublic}\n` +
-        `  - ${cwdPublic}\n` +
-        `  - ${clientDist}\n` +
-        `Using: ${distPath}\n` +
-        `Make sure to build the client first with: pnpm build:client`
-      );
-    }
+    distPath = cwdPublic; // Use default even if it doesn't exist
+    console.error(
+      `Could not find the build directory. Tried:\n` +
+      `  - ${distPublic}\n` +
+      `  - ${cwdPublic}\n` +
+      `  - ${clientDist}\n` +
+      `Current working directory: ${cwd}\n` +
+      `__dirname: ${__dirname}\n` +
+      `Using: ${distPath}\n` +
+      `Make sure to build the client first with: pnpm build:client`
+    );
   }
 
   app.use(express.static(distPath));
