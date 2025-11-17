@@ -4,7 +4,6 @@ import { type Server } from "http";
 import { nanoid } from "nanoid";
 import path from "path";
 import { createServer as createViteServer } from "vite";
-import viteConfig from "../../vite.config";
 
 // Get directory name that works in both ESM and after bundling
 // After esbuild bundling, import.meta.url is not reliable, so we always use process.cwd()
@@ -13,6 +12,8 @@ import viteConfig from "../../vite.config";
 const __dirname = process.cwd();
 
 export async function setupVite(app: Express, server: Server) {
+  // Don't import vite.config.ts to avoid issues with import.meta.dirname in bundled code
+  // Instead, let Vite load the config file directly
   const serverOptions = {
     middlewareMode: true,
     hmr: { server },
@@ -20,8 +21,9 @@ export async function setupVite(app: Express, server: Server) {
   };
 
   const vite = await createViteServer({
-    ...viteConfig,
-    configFile: false,
+    // Let Vite find and load vite.config.ts automatically
+    // This avoids bundling vite.config.ts which uses import.meta.dirname
+    configFile: path.resolve(process.cwd(), "vite.config.ts"),
     server: serverOptions,
     appType: "custom",
   });
