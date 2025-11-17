@@ -8,21 +8,10 @@ import { createServer as createViteServer } from "vite";
 import viteConfig from "../../vite.config";
 
 // Get directory name that works in both ESM and after bundling
-// After esbuild bundling, import.meta.url might not be available, so we use a fallback
-let __dirname: string;
-try {
-  // Check if import.meta.url exists and is a string
-  if (typeof import.meta.url === "string" && import.meta.url) {
-    const __filename = fileURLToPath(import.meta.url);
-    __dirname = path.dirname(__filename);
-  } else {
-    throw new Error("import.meta.url not available");
-  }
-} catch {
-  // Fallback for bundled code: use process.cwd()
-  // In Railway, the working directory is /app, and dist/ is at /app/dist
-  __dirname = process.cwd();
-}
+// After esbuild bundling, import.meta.url is not reliable, so we always use process.cwd()
+// This is safer and works in both development and production
+// In Railway, the working directory is /app, and dist/ is at /app/dist
+const __dirname = process.cwd();
 
 export async function setupVite(app: Express, server: Server) {
   const serverOptions = {
