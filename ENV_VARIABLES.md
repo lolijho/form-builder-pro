@@ -30,12 +30,17 @@ PORT=3000
 
 ## CORS Configuration (Obbligatorio per deploy separato)
 
+**Railway (Backend):**
 ```
 FRONTEND_URL=https://your-app.netlify.app
-BACKEND_URL=https://your-app.up.railway.app
 ```
 
-Sostituisci con gli URL effettivi dopo il deploy.
+**Netlify (Frontend):**
+```
+VITE_API_URL=https://your-app.up.railway.app
+```
+
+Sostituisci con gli URL effettivi dopo il deploy. `VITE_API_URL` è **obbligatoria** quando frontend e backend sono su domini diversi.
 
 ## Manus OAuth (Opzionale - solo se usi autenticazione Manus)
 
